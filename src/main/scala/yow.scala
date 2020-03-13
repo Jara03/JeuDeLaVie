@@ -1,5 +1,11 @@
-class yow {
+object yow {
+  def main(args: Array[String]): Unit = {
+    val l = List(" XX",
+      "  X",
+      "XXX")
+    afficherGrille(survivante(chaineToGrille(l)))
 
+  }
 
   //Partie 1
   type Grille = List[(Int, Int)]
@@ -32,6 +38,32 @@ class yow {
   //Affiche la grille à l'écran
   def afficherGrille(g: Grille): Unit = {
 
+    def min(x:(Int, Int), y:(Int, Int)): (Int, Int) = (x,y) match {
+      case ((a, b),(c, d)) if (a>=c &&b>=d) => (c,d)
+      case ((a, b), (c,_)) if(a >= c) => (c, b)
+      case ((a, b), (_, d)) if(b >= d) => (a, d)
+      case ((a, b), (_,_)) => (a, b)
+    }
+
+    def max(x:(Int, Int), y:(Int, Int)): (Int, Int) = (x,y) match {
+      case ((a, b), (c, d)) if(a <= c && b <= d) => (c, d)
+      case ((a, b), (c,_)) if(a <= c) => (c, b)
+      case ((a, b), (_, d)) if(b <= d) => (a, d)
+      case ((a, b), (_,_)) => (a, b)
+    }
+
+    val maxCol = g.reduceLeft(max)._2
+    val minCol = g.reduceLeft(min)._2
+    def afficher(g:Grille, index: (Int, Int)): Unit = (g, index) match {
+      case (Nil,_) => print("\n")
+      case (grid, (a, b)) if(b > maxCol) => print("\n")
+        afficher(grid, (a + 1, minCol))
+      case (head::tail, (a, b)) if(head == (a, b)) => print("X")
+        afficher(tail, (a, b + 1))
+      case (grid, (a, b)) => print(" ")
+        afficher(grid, (a, b + 1))
+    }
+    afficher(g, g.reduceLeft(min))
   }
 
 
@@ -43,21 +75,38 @@ class yow {
       (l, c-1)::(l-1, c-1)::(l-1, c)::(l-1, c+1)::(l, c+1)::(l+1, c+1)::(l+1, c)::(l+1, c-1)::Nil
   }
 
-  ////retourne la liste des cellules qui survivent
-  //  // à l'étape suivante selon les règles
-  //  def survivantes(g:Grille):Grille = {
-  //
-  //  }
-  //
-  //  //liste des cellules mortes voisines (suceptibles de naître)
-  //  def candidates(g:Grille):Grille = {
-  //
-  //  }
-  //
-  //  //listes des cellules qui naissent à l'étape suivante
-  //  def naissances(g:Grille):Grille = {
-  //
-  //  }
+  //retourne la liste des cellules qui survivent
+  // à l'étape suivante selon les règles
+  def survivante(g:Grille): Grille = {
+    @scala.annotation.tailrec
+    def aux1(grille: Grille, acc: Grille): Grille = grille match {
+      case t::q if(aux2(voisines8(t._1, t._2)) == 2) => aux1(q, acc:::t::Nil)
+      case t::q if(aux2(voisines8(t._1, t._2)) == 3) => aux1(q, acc:::t::Nil)
+      case _::q => aux1(q, acc)
+      case Nil => acc
+    }
+
+    def aux2(l:List[(Int, Int)]): Int = {
+      l.intersect(g).length
+    }
+
+    aux1(g, List[(Int, Int)]())
+  }
+
+  def candidate(g: Grille): Grille = {
+    def aux1(grille: Grille, acc: Grille): Grille = grille match {
+      case t::q if(aux2(voisines8(t._1, t._2)) == 2) => aux1(q, acc:::t::Nil)
+      case t::q if(aux2(voisines8(t._1, t._2)) == 3) => aux1(q, acc:::t::Nil)
+      case _::q => aux1(q, acc)
+      case Nil => acc
+    }
+
+    def aux2(l:List[(Int, Int)]): Int = {
+      l.intersect(g).length
+    }
+
+    aux1(g, List[(Int, Int)]())
+  }
 
   //grille initialise affiche en fonction d'un nb d'étapes n et
   // affiche n itérations de la simulation
