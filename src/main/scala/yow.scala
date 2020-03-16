@@ -93,6 +93,7 @@ object yow {
     aux1(g, List[(Int, Int)]())
   }
 
+  //pas faite c'est la meme que survivante
   def candidate(g: Grille): Grille = {
     def aux1(grille: Grille, acc: Grille): Grille = grille match {
       case t::q if(aux2(voisines8(t._1, t._2)) == 2) => aux1(q, acc:::t::Nil)
