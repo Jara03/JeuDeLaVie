@@ -1,9 +1,5 @@
 object yow {
   def main(args: Array[String]): Unit = {
-    val l = List("X  ",
-      " XX",
-      "XX ")
-    jeuDeLaVie(chaineToGrille(l), 10)
 
   }
 
@@ -183,4 +179,106 @@ object yow {
         jeuDeLaVie((survivante(init) ++ naissances(init)), n - 1)
       }
   }
+
+
+
+  //-------------------------- Partie 4
+  def voisine4(l:Int, c:Int):List[(Int,Int)] = {
+    (l, c-1)::(l-1, c)::(l, c+1)::(l+1, c)::Nil
+  }
+
+  def naitJdlv(nbVoisines:Int): Boolean = {
+    nbVoisines == 3
+  }
+  def naitFredkin(nbVoisines:Int) : Boolean = {
+    nbVoisines == 3 || nbVoisines == 1
+  }
+
+  def survitJdlv(nbVoisines:Int): Boolean = {
+    nbVoisines == 3 || nbVoisines == 2
+  }
+  def survitFredkin(nbVoisines:Int) : Boolean = {
+    nbVoisines == 2 || nbVoisines == 4
+  }
+
+
+  def survivanteG(g:Grille, voisines:(Int,Int)=>List[(Int,Int)], regles:Int=>Boolean): Grille = {
+    @scala.annotation.tailrec
+    def aux1(grille: Grille, acc: Grille): Grille = grille match {
+      case t::q if (regles(aux2(voisines(t._1, t._2)))) => aux1(q, acc:::t::Nil)
+      case _::q => aux1(q, acc)
+      case Nil => acc
+    }
+
+    def aux2(l:List[(Int, Int)]): Int = {
+      l.intersect(g).length
+    }
+
+    aux1(g, List[(Int, Int)]())
+  }
+
+
+
+  def candidateG(g: Grille, voisines:(Int,Int)=>List[(Int,Int)], regles:Int=>Boolean): Grille = {
+    @scala.annotation.tailrec
+    def aux1(grille: Grille, acc: Grille): Grille = grille match {
+      case t::q if (regles(aux2(voisines(t._1, t._2)))) => aux1(q, acc)
+      case t::q => aux1(q, acc:::t::Nil)
+      case Nil => acc
+    }
+
+    def aux2(l:List[(Int, Int)]): Int = {
+      l.intersect(g).length
+    }
+
+    aux1(g, List[(Int, Int)]())
+  }
+
+
+  def naissancesG(g: Grille, voisines:(Int,Int)=>List[(Int,Int)], regleVie:Int=>Boolean, regleNait:Int=>Boolean): Grille ={
+    @scala.annotation.tailrec
+    def aux1(grille: Grille, acc: Grille): Grille = grille match {
+      case t::q if(regleNait(aux2(candidateG(g, voisines, regleVie)))) => aux1(q, acc:::t::Nil)
+      case _::q => aux1(q, acc)
+      case Nil => acc
+    }
+
+    def aux2(l:List[(Int, Int)]): Int = {
+      l.intersect(g).length
+    }
+
+    aux1(g, List[(Int, Int)]())
+  }
+
+  def moteur(init: Grille, n:Int, voisines:(Int,Int)=>List[(Int,Int)], regleVie:Int=>Boolean, regleNait:Int=>Boolean): Unit ={
+    println("étape suivante : ")
+    afficherGrille(init)
+    if (n > 0) {
+      moteur((survivanteG(init, voisines, regleVie) ++ naissancesG(init, voisines, regleVie, regleNait)), n - 1, voisines, regleVie, regleNait)
+    }
+  }
+
+  def fredkins(): Unit ={
+    val l = List("X  ",
+      " XX",
+      "XX ")
+    moteur(chaineToGrille(l), 10, voisine4, naitFredkin, survitFredkin)
+  }
+
+  def voisineDiag(l:Int, c:Int):List[(Int,Int)] = {
+    (l+1, c+1)::(l-1, c+1)::(l-1, c-1)::(l+1, c-1)::Nil
+  }
+
+  def diagonalesFredkins(): Unit ={
+    val l = List("X  ",
+      " XX",
+      "XX ")
+    moteur(chaineToGrille(l), 10, voisineDiag, naitFredkin, survitFredkin)
+  }
+
+
+
+
+
+
 }
