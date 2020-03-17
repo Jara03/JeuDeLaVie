@@ -1,8 +1,8 @@
 object yow {
   def main(args: Array[String]): Unit = {
-    val l = List("XX",
-      "XX",
-      "XX")
+    val l = List("X  ",
+      " XX",
+      "XX ")
     jeuDeLaVie(chaineToGrille(l), 10)
 
   }
@@ -37,36 +37,41 @@ object yow {
 
 
 
-  def coordsMax(grille: Grille): (Int, Int) = {
-    def aux(g: Grille, max: (Int, Int)): (Int, Int) = {
-      if (g.isEmpty) {
-        max
-      } else if (g.head._1 > max._1) {
-        aux(g, (g.head._1, max._2))
-      } else if (g.head._2 > max._2) {
-        aux(g.tail, (max._1, g.head._2))
-      } else {
-        aux(g.tail, max)
-      }
-    }
-
-    aux(grille, grille.head)
-  }
-
-  def coordsMin(grille: Grille): (Int, Int) = {
-    def aux(g: Grille, min: (Int, Int)): (Int, Int) = {
-      if (g.isEmpty)
+  def coordsMin(grille:Grille) : (Int,Int) = {
+    def aux(g:Grille, min:(Int,Int)): (Int,Int) = {
+      if(g.isEmpty)
         min
-      else if (g.head._1 < min._1)
-        aux(g, (g.head._1, min._2))
-      else if (g.head._2 < min._2)
-        aux(g.tail, (min._1, g.head._2))
+      else
+      if(g.head._1 < min._1)
+        aux(g, (g.head._1,min._2))
+      else if(g.head._2 < min._2)
+        aux(g.tail, (min._1,g.head._2))
       else
         aux(g.tail, min)
+    }
+    if(grille.nonEmpty)
+      aux(grille, grille.head)
+    else
+      (0,0)
+  }
+
+  def coordsMax(grille:Grille) : (Int,Int) = {
+    def aux(g:Grille, max:(Int,Int)): (Int,Int) = {
+      if(g.isEmpty)
+        max
+      else
+      if(g.head._1 > max._1)
+        aux(g, (g.head._1,max._2))
+      else if(g.head._2 > max._2)
+        aux(g.tail, (max._1,g.head._2))
+      else
+        aux(g.tail, max)
 
     }
-
-    aux(grille, grille.head)
+    if(grille.nonEmpty)
+      aux(grille, grille.head)
+    else
+      (0,0)
   }
 
   def afficherGrille(g: Grille): Unit = {
@@ -135,7 +140,7 @@ object yow {
     aux1(g, List[(Int, Int)]())
   }
 
-  //pas faite c'est la meme que survivante
+
   def candidate(g: Grille): Grille = {
     @scala.annotation.tailrec
     def aux1(grille: Grille, acc: Grille): Grille = grille match {
