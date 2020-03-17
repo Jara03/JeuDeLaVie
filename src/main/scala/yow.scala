@@ -1,9 +1,9 @@
 object yow {
   def main(args: Array[String]): Unit = {
-    val l = List(" XX",
-      "  X",
-      "XXX")
-    afficherGrille(survivante(chaineToGrille(l)))
+    val l = List("XX",
+      "XX",
+      "XX")
+    jeuDeLaVie(chaineToGrille(l), 10)
 
   }
 
@@ -35,35 +35,77 @@ object yow {
 
 
 
-  //Affiche la grille à l'écran
+
+
+  def coordsMax(grille: Grille): (Int, Int) = {
+    def aux(g: Grille, max: (Int, Int)): (Int, Int) = {
+      if (g.isEmpty) {
+        max
+      } else if (g.head._1 > max._1) {
+        aux(g, (g.head._1, max._2))
+      } else if (g.head._2 > max._2) {
+        aux(g.tail, (max._1, g.head._2))
+      } else {
+        aux(g.tail, max)
+      }
+    }
+
+    aux(grille, grille.head)
+  }
+
+  def coordsMin(grille: Grille): (Int, Int) = {
+    def aux(g: Grille, min: (Int, Int)): (Int, Int) = {
+      if (g.isEmpty)
+        min
+      else if (g.head._1 < min._1)
+        aux(g, (g.head._1, min._2))
+      else if (g.head._2 < min._2)
+        aux(g.tail, (min._1, g.head._2))
+      else
+        aux(g.tail, min)
+
+    }
+
+    aux(grille, grille.head)
+  }
+
   def afficherGrille(g: Grille): Unit = {
+    val (xMax, yMax) = coordsMax(g)
+    val (xMin, yMin) = coordsMin(g)
+    println("")
+    def afficherChar(b: Boolean) = {
 
-    def min(x:(Int, Int), y:(Int, Int)): (Int, Int) = (x,y) match {
-      case ((a, b),(c, d)) if (a>=c &&b>=d) => (c,d)
-      case ((a, b), (c,_)) if(a >= c) => (c, b)
-      case ((a, b), (_, d)) if(b >= d) => (a, d)
-      case ((a, b), (_,_)) => (a, b)
+      if (b) {
+        print("X")
+      } else {
+        print(" ")
+      }
+      print(" | ")
     }
 
-    def max(x:(Int, Int), y:(Int, Int)): (Int, Int) = (x,y) match {
-      case ((a, b), (c, d)) if(a <= c && b <= d) => (c, d)
-      case ((a, b), (c,_)) if(a <= c) => (c, b)
-      case ((a, b), (_, d)) if(b <= d) => (a, d)
-      case ((a, b), (_,_)) => (a, b)
+    def affcherLigne(n: Int): Unit = {
+      if (n < yMax) {
+        affcherLigne(n + 1)
+      }
     }
 
-    val maxCol = g.reduceLeft(max)._2
-    val minCol = g.reduceLeft(min)._2
-    def afficher(g:Grille, index: (Int, Int)): Unit = (g, index) match {
-      case (Nil,_) => print("\n")
-      case (grid, (a, b)) if(b > maxCol) => print("\n")
-        afficher(grid, (a + 1, minCol))
-      case (head::tail, (a, b)) if(head == (a, b)) => print("X")
-        afficher(tail, (a, b + 1))
-      case (grid, (a, b)) => print(" ")
-        afficher(grid, (a, b + 1))
+    def afficherCoords(x: Int, y: Int): Unit = {
+      afficherChar(g.contains((x, y)))
+      if (y < yMax) {
+        afficherCoords(x, y + 1)
+      } else {
+        if (x < xMax) {
+          println()
+          affcherLigne(yMin)
+          afficherCoords(x + 1, yMin)
+        }
+      }
     }
-    afficher(g, g.reduceLeft(min))
+
+    affcherLigne(yMin)
+    afficherCoords(xMin, yMin)
+    println("")
+    affcherLigne(yMin)
   }
 
 
@@ -95,9 +137,26 @@ object yow {
 
   //pas faite c'est la meme que survivante
   def candidate(g: Grille): Grille = {
+    @scala.annotation.tailrec
     def aux1(grille: Grille, acc: Grille): Grille = grille match {
-      case t::q if(aux2(voisines8(t._1, t._2)) == 2) => aux1(q, acc:::t::Nil)
-      case t::q if(aux2(voisines8(t._1, t._2)) == 3) => aux1(q, acc:::t::Nil)
+      case t::q if(aux2(voisines8(t._1, t._2)) == 2) => aux1(q, acc)
+      case t::q if(aux2(voisines8(t._1, t._2)) == 3) => aux1(q, acc)
+      case t::q => aux1(q, acc:::t::Nil)
+      case Nil => acc
+    }
+
+    def aux2(l:List[(Int, Int)]): Int = {
+      l.intersect(g).length
+    }
+
+    aux1(g, List[(Int, Int)]())
+  }
+
+
+  def naissances(g: Grille): Grille ={
+    @scala.annotation.tailrec
+    def aux1(grille: Grille, acc: Grille): Grille = grille match {
+      case t::q if(aux2(candidate(g)) == 3) => aux1(q, acc:::t::Nil)
       case _::q => aux1(q, acc)
       case Nil => acc
     }
@@ -109,10 +168,14 @@ object yow {
     aux1(g, List[(Int, Int)]())
   }
 
+
   //grille initialise affiche en fonction d'un nb d'étapes n et
   // affiche n itérations de la simulation
-  def jeuDeLaVie(init:Grille, n:Int):Unit = {
-
+  def jeuDeLaVie(init: Grille, n: Int): Unit = {
+      println("étape suivante : ")
+      afficherGrille(init)
+      if (n > 0) {
+        jeuDeLaVie((survivante(init) ++ naissances(init)), n - 1)
+      }
   }
-
 }
